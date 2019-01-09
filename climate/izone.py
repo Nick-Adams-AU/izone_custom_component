@@ -7,17 +7,15 @@ https://github.com/Swamp-Ig/izone_custom_component
 import logging
 from typing import cast
 
-from custom_components.izone.constants import (DATA_ADD_ENTRIES,
-                                               DATA_DISCOVERY_SERVICE, DOMAIN)
-from homeassistant.components.climate import (STATE_AUTO, STATE_COOL,
-                                              STATE_DRY, STATE_FAN_ONLY,
-                                              STATE_HEAT, SUPPORT_FAN_MODE,
-                                              SUPPORT_ON_OFF,
-                                              SUPPORT_OPERATION_MODE,
-                                              SUPPORT_TARGET_TEMPERATURE,
-                                              ClimateDevice)
-from homeassistant.const import (ATTR_TEMPERATURE, PRECISION_HALVES,
-                                 STATE_OPEN, STATE_CLOSED, TEMP_CELSIUS)
+from custom_components.izone.constants import (
+    DATA_ADD_ENTRIES, DATA_DISCOVERY_SERVICE, DOMAIN)
+
+from homeassistant.components.climate import (
+    STATE_AUTO, STATE_COOL, STATE_DRY, STATE_FAN_ONLY, STATE_HEAT,
+    SUPPORT_FAN_MODE, SUPPORT_ON_OFF, SUPPORT_OPERATION_MODE,
+    SUPPORT_TARGET_TEMPERATURE, ClimateDevice)
+from homeassistant.const import (
+    ATTR_TEMPERATURE, PRECISION_HALVES, STATE_CLOSED, STATE_OPEN, TEMP_CELSIUS)
 from homeassistant.helpers.temperature import display_temp as show_temp
 from homeassistant.helpers.typing import ConfigType, HomeAssistantType
 
@@ -301,10 +299,10 @@ class ZoneDevice(ClimateDevice):
             self._state_to_pizone = {
                 STATE_CLOSED.title(): Zone.Mode.CLOSE,
                 STATE_OPEN.title(): Zone.Mode.OPEN,
-                STATE_AUTO: Zone.Mode.AUTO,
+                STATE_AUTO.title(): Zone.Mode.AUTO,
             }
             self._supported_features = (SUPPORT_ON_OFF |
-                                        SUPPORT_OPERATION_MODE |
+                                        SUPPORT_FAN_MODE |
                                         SUPPORT_TARGET_TEMPERATURE)
 
     @property
@@ -357,7 +355,7 @@ class ZoneDevice(ClimateDevice):
         return PRECISION_HALVES
 
     @property
-    def current_operation(self):
+    def current_fan_mode(self):
         """Return current operation ie. heat, cool, idle."""
         mode = self._zone.mode
         for (key, value) in self._state_to_pizone.items():
@@ -366,7 +364,7 @@ class ZoneDevice(ClimateDevice):
         return ''
 
     @property
-    def operation_list(self):
+    def fan_list(self):
         """Return the list of available operation modes."""
         return list(self._state_to_pizone.keys())
 
@@ -405,12 +403,12 @@ class ZoneDevice(ClimateDevice):
             await self._controller._wrap_and_catch(  # pylint: disable=W0212
                 self._zone.set_temp_setpoint(temp))
 
-    async def async_set_operation_mode(self, operation_mode):
+    async def async_set_fan_mode(self, fan_mode):
         """Set new target operation mode.
 
         This method must be run in the event loop and returns a coroutine.
         """
-        mode = self._state_to_pizone[operation_mode]
+        mode = self._state_to_pizone[fan_mode]
         await self._controller._wrap_and_catch(  # pylint: disable=W0212
             self._zone.set_mode(mode))
 
